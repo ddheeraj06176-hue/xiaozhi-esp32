@@ -124,7 +124,7 @@ bool AfeAudioEngine::Initialize(AudioCodec* codec, int frame_duration_ms,
     char* vad_model_name =
         models_ == nullptr ? nullptr : esp_srmodel_filter(models_, ESP_VADN_PREFIX, nullptr);
     afe_config_t* afe_config =
-        afe_config_init(input_format.c_str(), models_, AFE_TYPE_FD, AFE_MODE_LOW_COST);
+        afe_config_init(input_format.c_str(), models_, AFE_TYPE_SR, AFE_MODE_LOW_COST);
     if (afe_config == nullptr) {
         ESP_LOGE(TAG, "Failed to create AFE configuration");
         return false;

@@ -208,14 +208,17 @@ bool AfeAudioEngine::Initialize(AudioCodec* codec, int frame_duration_ms,
         afe_iface_->disable_aec(afe_data_);
     }
     afe_iface_->print_pipeline(afe_data_);
-
-    if (processing_task_stack_ == nullptr) {
+if (processing_task_stack_ == nullptr) {
         processing_task_stack_ = static_cast<StackType_t*>(
-            heap_caps_malloc(kProcessingTaskStackSize, MALLOC_CAP_SPIRAM));
+            heap_caps_malloc(kProcessingTaskStackSize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+        if (processing_task_stack_ == nullptr) {
+            processing_task_stack_ = static_cast<StackType_t*>(
+                heap_caps_malloc(kProcessingTaskStackSize, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+        }
     }
     if (processing_task_buffer_ == nullptr) {
         processing_task_buffer_ =
-            static_cast<StaticTask_t*>(heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL));
+            static_cast<StaticTask_t*>(heap_caps_malloc(sizeof(StaticTask_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
     }
     if (processing_task_stack_ == nullptr || processing_task_buffer_ == nullptr) {
         ESP_LOGE(TAG, "Failed to allocate AFE processing task memory");

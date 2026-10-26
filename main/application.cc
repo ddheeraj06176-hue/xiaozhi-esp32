@@ -20,6 +20,22 @@
 #include <cstring>
 #include <limits>
 
+#include <esp_now.h>
+#include <esp_wifi.h>
+
+// Tumhare 4-relay board ka MAC address
+static const uint8_t kRelayPeerMac[6] = {0x68, 0x09, 0x47, 0x86, 0x26, 0xA0};
+
+typedef struct {
+    int relay_num; // 1: Fan, 2: TV, 3: Second Light, 4: Light
+    bool state;    // true = ON, false = OFF
+} CustomRelayMsg;
+
+static void SendCustomRelay(int relay_num, bool state) {
+    CustomRelayMsg msg = { .relay_num = relay_num, .state = state };
+    esp_now_send(kRelayPeerMac, reinterpret_cast<const uint8_t*>(&msg), sizeof(msg));
+}
+
 #define TAG "Application"
 
 Application::Application() : notify_player_(audio_service_) {
@@ -303,6 +319,15 @@ void Application::Run() {
 void Application::HandleNetworkConnectedEvent() {
     ESP_LOGI(TAG, "Network connected");
     auto state = GetDeviceState();
+    // ESP-NOW peer register karein
+    if (esp_now_init() == ESP_OK) {
+        esp_now_peer_info_t peer = {};
+        memcpy(peer.peer_addr, kRelayPeerMac, 6);
+        peer.channel = 0;
+        peer.encrypt = false;
+        esp_now_add_peer(&peer);
+        ESP_LOGI("RelaySender", "ESP-NOW Relay Peer Registered!");
+    }
 
     if (state == kDeviceStateStarting || state == kDeviceStateWifiConfiguring) {
         // Network is ready, start activation
@@ -681,6 +706,22 @@ void Application::InitializeProtocol() {
             auto text = cJSON_GetObjectItem(root, "text");
             if (cJSON_IsString(text)) {
                 std::vector<TextGlyph> glyphs;
+                std::string cmd = text->valuestring;
+        // 1: Fan
+        if (cmd.find("fan on") != std::string::npos || cmd.find("पंखा चालू") != std::string::npos || cmd.find("पंखा ऑन") != std::string::npos) SendCustomRelay(1, true);
+        if (cmd.find("fan off") != std::string::npos || cmd.find("पंखा बंद") != std::string::npos || cmd.find("पंखा ऑफ") != std::string::npos) SendCustomRelay(1, false);
+
+        // 2: TV
+        if (cmd.find("tv on") != std::string::npos || cmd.find("टीवी चालू") != std::string::npos || cmd.find("टीवी ऑन") != std::string::npos) SendCustomRelay(2, true);
+        if (cmd.find("tv off") != std::string::npos || cmd.find("टीवी बंद") != std::string::npos || cmd.find("टीवी ऑफ") != std::string::npos) SendCustomRelay(2, false);
+
+        // 3: Second Light
+        if (cmd.find("second light on") != std::string::npos || cmd.find("दूसरी लाइट चालू") != std::string::npos) SendCustomRelay(3, true);
+        if (cmd.find("second light off") != std::string::npos || cmd.find("दूसरी लाइट बंद") != std::string::npos) SendCustomRelay(3, false);
+
+        // 4: Light
+        if (cmd.find("light on") != std::string::npos || cmd.find("लाइट चालू") != std::string::npos || cmd.find("लाइट ऑन") != std::string::npos) SendCustomRelay(4, true);
+        if (cmd.find("light off") != std::string::npos || cmd.find("लाइट बंद") != std::string::npos || cmd.find("लाइट ऑफ") != std::string::npos) SendCustomRelay(4, false);
                 uint8_t bpp = 0;
                 if (!TextGlyphPayload::Parse(root, glyphs, bpp)) {
                     glyphs.clear();

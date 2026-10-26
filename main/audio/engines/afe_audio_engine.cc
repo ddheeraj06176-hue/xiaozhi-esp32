@@ -114,7 +114,7 @@ bool AfeAudioEngine::Initialize(AudioCodec* codec, int frame_duration_ms,
 
     int ref_num = codec_->input_reference() ? 1 : 0;
     std::string input_format;
-    for (int i = 0; i < codec_->input_channels() - ref_num; ++i) {
+    for (int i = 0; i < 2; ++i) {
         input_format.push_back('M');
     }
     for (int i = 0; i < ref_num; ++i) {

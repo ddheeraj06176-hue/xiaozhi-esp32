@@ -20,6 +20,7 @@
 #include <cstring>
 #include <limits>
 
+#if CONFIG_SOC_WIFI_SUPPORTED
 #include <esp_now.h>
 #include <esp_wifi.h>
 
@@ -35,6 +36,7 @@ static void SendCustomRelay(int relay_num, bool state) {
     CustomRelayMsg msg = { .relay_num = relay_num, .state = state };
     esp_now_send(kRelayPeerMac, reinterpret_cast<const uint8_t*>(&msg), sizeof(msg));
 }
+#endif
 
 #define TAG "Application"
 
@@ -319,6 +321,7 @@ void Application::Run() {
 void Application::HandleNetworkConnectedEvent() {
     ESP_LOGI(TAG, "Network connected");
     auto state = GetDeviceState();
+   #if CONFIG_SOC_WIFI_SUPPORTED
     // ESP-NOW peer register karein
     if (esp_now_init() == ESP_OK) {
         esp_now_peer_info_t peer = {};
@@ -328,7 +331,8 @@ void Application::HandleNetworkConnectedEvent() {
         esp_now_add_peer(&peer);
         ESP_LOGI("RelaySender", "ESP-NOW Relay Peer Registered!");
     }
-
+    #endif
+  
     if (state == kDeviceStateStarting || state == kDeviceStateWifiConfiguring) {
         // Network is ready, start activation
         SetDeviceState(kDeviceStateActivating);
@@ -706,6 +710,7 @@ void Application::InitializeProtocol() {
             auto text = cJSON_GetObjectItem(root, "text");
             if (cJSON_IsString(text)) {
                 std::vector<TextGlyph> glyphs;
+               #if CONFIG_SOC_WIFI_SUPPORTED
                 std::string cmd = text->valuestring;
         // 1: Fan
         if (cmd.find("fan on") != std::string::npos || cmd.find("पंखा चालू") != std::string::npos || cmd.find("पंखा ऑन") != std::string::npos) SendCustomRelay(1, true);
@@ -722,6 +727,7 @@ void Application::InitializeProtocol() {
         // 4: Light
         if (cmd.find("light on") != std::string::npos || cmd.find("लाइट चालू") != std::string::npos || cmd.find("लाइट ऑन") != std::string::npos) SendCustomRelay(4, true);
         if (cmd.find("light off") != std::string::npos || cmd.find("लाइट बंद") != std::string::npos || cmd.find("लाइट ऑफ") != std::string::npos) SendCustomRelay(4, false);
+              #endif
                 uint8_t bpp = 0;
                 if (!TextGlyphPayload::Parse(root, glyphs, bpp)) {
                     glyphs.clear();

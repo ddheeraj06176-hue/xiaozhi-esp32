@@ -222,11 +222,9 @@ NoAudioCodecSimplex::NoAudioCodecSimplex(int input_sample_rate, int output_sampl
             },
         },
     };
-  
-rx_std_cfg.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
-
-    ESP_ERROR_CHECK(i2s_channel_init_std_mode(rx_handle_, &rx_std_cfg));
+  ESP_ERROR_CHECK(i2s_channel_init_std_mode(rx_handle_, &rx_std_cfg));
     ESP_LOGI(TAG, "Simplex channels created");
+}
 
 int NoAudioCodec::Write(const int16_t* data, int samples) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);

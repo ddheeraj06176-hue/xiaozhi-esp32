@@ -202,21 +202,31 @@ NoAudioCodecSimplex::NoAudioCodecSimplex(int input_sample_rate, int output_sampl
     };
     ESP_ERROR_CHECK(i2s_channel_init_std_mode(tx_handle_, &std_cfg));
 
-    // Create a new channel for MIC
+ // Create a new channel for MIC
     chan_cfg.id = XIAOZHI_I2S_PORT(1);
     ESP_ERROR_CHECK(i2s_new_channel(&chan_cfg, nullptr, &rx_handle_));
-    std_cfg.clk_cfg.sample_rate_hz = (uint32_t)input_sample_rate_;
-    std_cfg.slot_cfg.slot_mode = I2S_SLOT_MODE_STEREO;
-    std_cfg.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
-    std_cfg.slot_cfg.slot_bit_width = I2S_SLOT_BIT_WIDTH_32BIT;
-    std_cfg.slot_cfg.data_bit_width = I2S_DATA_BIT_WIDTH_32BIT;
-    std_cfg.gpio_cfg.bclk = mic_sck;
-    std_cfg.gpio_cfg.ws = mic_ws;
-    std_cfg.gpio_cfg.dout = I2S_GPIO_UNUSED;
-    std_cfg.gpio_cfg.din = mic_din;
-    ESP_ERROR_CHECK(i2s_channel_init_std_mode(rx_handle_, &std_cfg));
+
+    i2s_std_config_t rx_std_cfg = {
+        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG((uint32_t)input_sample_rate_),
+        .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO),
+        .gpio_cfg = {
+            .mclk = I2S_GPIO_UNUSED,
+            .bclk = mic_sck,
+            .ws = mic_ws,
+            .dout = I2S_GPIO_UNUSED,
+            .din = mic_din,
+            .invert_flags = {
+                .mclk_inv = false,
+                .bclk_inv = false,
+                .ws_inv = false,
+            },
+        },
+    };
+  
+rx_std_cfg.slot_cfg.slot_mask = I2S_STD_SLOT_BOTH;
+
+    ESP_ERROR_CHECK(i2s_channel_init_std_mode(rx_handle_, &rx_std_cfg));
     ESP_LOGI(TAG, "Simplex channels created");
-}
 
 int NoAudioCodec::Write(const int16_t* data, int samples) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);

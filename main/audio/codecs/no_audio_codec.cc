@@ -249,7 +249,7 @@ int NoAudioCodec::Write(const int16_t* data, int samples) {
     return bytes_written / sizeof(int32_t);
 }
 
-int NoAudioCodec::Read(int16_t* dest, int samples) {
+int NoAudioCodecSimplex::Read(int16_t* dest, int samples) {
     size_t bytes_read;
     constexpr uint32_t kReadTimeoutMs = 200;
 
@@ -266,7 +266,7 @@ int NoAudioCodec::Read(int16_t* dest, int samples) {
     return samples;
 }
 
-void NoAudioCodec::EnableInput(bool enable) {
+void NoAudioCodecSimplex::EnableInput(bool enable) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);
     if (enable == input_enabled_) {
         return;

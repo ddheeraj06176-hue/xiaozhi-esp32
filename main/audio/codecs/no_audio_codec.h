@@ -32,6 +32,7 @@ public:
 
     int Read(int16_t* dest, int samples) override;
     void EnableInput(bool enable) override;
+    virtual ~NoAudioCodecSimplex() = default;
 };
 
 class NoAudioCodecSimplexPdm : public NoAudioCodec {

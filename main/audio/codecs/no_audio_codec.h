@@ -12,8 +12,8 @@ protected:
     std::mutex data_if_mutex_;
 
     virtual int Write(const int16_t* data, int samples) override;
-    virtual int Read(int16_t* dest, int samples) override;
-    virtual void EnableInput(bool enable) override;
+   virtual int Read(int16_t* dest, int samples) override { return 0; }
+    virtual void EnableInput(bool enable) override {}
     virtual void EnableOutput(bool enable) override;
 
 public:

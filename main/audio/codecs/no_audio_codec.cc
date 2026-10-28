@@ -226,7 +226,7 @@ NoAudioCodecSimplex::NoAudioCodecSimplex(int input_sample_rate, int output_sampl
     ESP_LOGI(TAG, "Simplex channels created");
 }
 
-int NoAudioCodec::Write(const int16_t* data, int samples) {
+int NoAudioCodecSimplex::Write(const int16_t* data, int samples) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);
     std::vector<int32_t> buffer(samples);
 
@@ -249,7 +249,7 @@ int NoAudioCodec::Write(const int16_t* data, int samples) {
     return bytes_written / sizeof(int32_t);
 }
 
-int NoAudioCodec::Read(int16_t* dest, int samples) {
+int NoAudioCodecSimplex::Read(int16_t* dest, int samples) {
     size_t bytes_read;
     constexpr uint32_t kReadTimeoutMs = 200;
 
@@ -266,7 +266,7 @@ int NoAudioCodec::Read(int16_t* dest, int samples) {
     return samples;
 }
 
-void NoAudioCodec::EnableInput(bool enable) {
+void NoAudioCodecSimplex::EnableInput(bool enable) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);
     if (enable == input_enabled_) {
         return;
@@ -279,7 +279,7 @@ void NoAudioCodec::EnableInput(bool enable) {
     AudioCodec::EnableInput(enable);
 }
 
-void NoAudioCodec::EnableOutput(bool enable) {
+void NoAudioCodecSimplex::EnableOutput(bool enable) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);
     if (enable == output_enabled_) {
         return;

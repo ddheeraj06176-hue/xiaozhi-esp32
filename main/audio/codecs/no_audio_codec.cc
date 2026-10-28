@@ -279,7 +279,7 @@ void NoAudioCodecSimplex::EnableInput(bool enable) {
     AudioCodec::EnableInput(enable);
 }
 
-void NoAudioCodecSimplex::EnableOutput(bool enable) {
+void NoAudioCodec::EnableOutput(bool enable) {
     std::lock_guard<std::mutex> lock(data_if_mutex_);
     if (enable == output_enabled_) {
         return;
